@@ -1,0 +1,41 @@
+Question 1: How could you use a subquery to extract all the data from exam_answers that had test durations that were greater than the average duration for the "Yawn Warm-Up" game? Start by writing the query that gives you the average duration for the "Yawn Warm-Up" game by itself (and don't forget to exclude negative values; your average duration should be about 9934):
+
+%sql SELECT * FROM exam_answers WHERE TIMESTAMPDIFF(MINUTE, start_time, end_time) > (SELECT AVG(TIMESTAMPDIFF(MINUTE, start_time, end_time)) AS meanv FROM exam_answers WHERE TIMESTAMPDIFF(MINUTE, start_time, end_time)>0);
+
+Question 2: Once you've verified that your subquery is written correctly on its own, incorporate it into a main query to extract all the data from exam_answers that had test durations that were greater than the average duration for the "Yawn Warm-Up" game (you will get 11059 rows):
+%sql SELECT COUNT(*) FROM exam_answers WHERE TIMESTAMPDIFF(MINUTE, start_time, end_time) > (SELECT AVG(TIMESTAMPDIFF(MINUTE, start_time, end_time)) AS meanv FROM exam_answers WHERE TIMESTAMPDIFF(MINUTE, start_time, end_time)>0 AND test_name='Yawn Warm-Up') ;
+
+Question 3: Use an IN operator to determine how many entries in the exam_answers tables are from the "Puzzles", "Numerosity", or "Bark Game" tests. You should get a count of 163022.
+
+%sql SELECT COUNT(*) FROM exam_answers WHERE subcategory_name IN ('Puzzles','Numerosity','Bark Game');
+
+
+Question 4: Use a NOT IN operator to determine how many unique dogs in the dog table are NOT in the "Working", "Sporting", or "Herding" breeding groups. You should get an answer of 7961.
+%sql SELECT COUNT(DISTINCT dog_guid) FROM dogs WHERE breed_group NOT IN ('Working','Sporting','Herding');
+
+Question 5: How could you determine the number of unique users in the users table who were NOT in the dogs table using a NOT EXISTS clause? You should get the 2226, the same result as you got in Question 10 of MySQL Exercise 8: Joining Tables with Outer Joins.
+%sql SELECT COUNT(DISTINCT u.user_guid) AS uninum FROM users u WHERE NOT EXISTs  (SELECT d.user_guid FROM dogs d WHERE d.user_guid=u.user_guid )
+
+Question 6: Write a query using an IN clause and equijoin syntax that outputs the dog_guid, breed group, state of the owner, and zip of the owner for each distinct dog in the Working, Sporting, and Herding breed groups. (You should get 10,254 rows; the query will be a little slower than some of the others we have practiced)
+%sql SELECT DISTINCT d.dog_guid, d.breed_group,u.state,u.zip FROM users u, dogs d WHERE d.breed_group IN ('Working', 'Sporting', 'Herding') AND u.user_guid=d.user_guid 
+
+Question 7: Write the same query as in Question 6 using traditional join syntax.
+%sql SELECT DISTINCT d.dog_guid, d.breed_group,u.state,u.zip FROM users u JOIN dogs d ON u.user_guid=d.user_guid WHERE d.breed_group IN ('Working', 'Sporting', 'Herding') 
+
+Question 8: Earlier we examined unique users in the users table who were NOT in the dogs table. Use a NOT EXISTS clause to examine all the users in the dogs table that are not in the users table (you should get 2 rows in your output).
+%sql SELECT d.user_guid AS uniqueuser FROM dogs d WHERE NOT EXISTS (SELECT DISTINCT u.user_guid FROM users u WHERE u.user_guid=d.user_guid);
+
+Question 9: We saw earlier that user_guid 'ce7b75bc-7144-11e5-ba71-058fbc01cf0b' still ends up with 1819 rows of output after a left outer join with the dogs table. If you investigate why, you'll find out that's because there are duplicate user_guids in the dogs table as well. How would you adapt the query we wrote earlier (copied below) to only join unique UserIDs from the users table with unique UserIDs from the dog table?
+%sql SELECT DistinctUUsersID.user_guid AS uUserID, d.user_guid AS dUserID, count(*) AS numrows FROM (SELECT DISTINCT u.user_guid FROM users u WHERE u.user_guid='ce7b75bc-7144-11e5-ba71-058fbc01cf0b') AS DistinctUUsersID LEFT JOIN dogs d ON DistinctUUsersID.user_guid=d.user_guid GROUP BY DistinctUUsersID.user_guid ORDER BY numrows DESC;
+
+Question 10: Now let's prepare and test the inner query for the right half of the join. Give the dogs table an alias, and write a query that would select the distinct user_guids from the dogs table (we will use this query as a inner subquery in subsequent questions, so you will need an alias to differentiate the user_guid column of the dogs table from the user_guid column of the users table).
+%sql SELECT DISTINCT d.user_guid FROM dogs d;
+
+Question 11: Now insert the query you wrote in Question 10 as a subquery on the right part of the join you wrote in question 9. The output should return columns that should have matching user_guids, and 1 row in the numrows column with a value of 1. If you are getting errors, make sure you have given an alias to the derived table you made to extract the distinct user_guids from the dogs table, and double-check that your aliases are referenced correctly in the SELECT and ON statements.
+%sql SELECT DistinctUUsersID.user_guid AS uUserID, uniquedogid.user_guid AS dUserID, count(*) AS numrows FROM (SELECT DISTINCT u.user_guid FROM users u WHERE u.user_guid='ce7b75bc-7144-11e5-ba71-058fbc01cf0b') AS DistinctUUsersID LEFT JOIN (SELECT DISTINCT d.user_guid FROM dogs d) uniquedogid ON DistinctUUsersID.user_guid=uniquedogid.user_guid GROUP BY DistinctUUsersID.user_guid ORDER BY numrows DESC;
+
+Question 12: Adapt the query from Question 10 so that, in theory, you would retrieve a full list of all the DogIDs a user in the users table owns, with its accompagnying breed information whenever possible. HOWEVER, BEFORE YOU RUN THE QUERY MAKE SURE TO LIMIT YOUR OUTPUT TO 100 ROWS WITHIN THE SUBQUERY TO THE LEFT OF YOUR JOIN. 
+%sql SELECT DistinctUUsersID.user_guid AS uUserID, uniquedogid.user_guid AS dUserID, uniquedogid.breed,count(*) AS numrows FROM (SELECT DISTINCT u.user_guid FROM users u LIMIT 100) AS DistinctUUsersID LEFT JOIN (SELECT DISTINCT d.user_guid, d.dog_guid,  d.breed FROM dogs d) uniquedogid ON DistinctUUsersID.user_guid=uniquedogid.user_guid GROUP BY DistinctUUsersID.user_guid ORDER BY numrows DESC;
+
+Question 13: You might have a good guess by now about why there are duplicate rows in the dogs table and users table, even though most corporate databases are configured to prevent duplicate rows from ever being accepted. To be sure, though, let's adapt this query we wrote above:
+%sql SELECT DistinctUUsersID.user_guid AS uUserID, d.user_guid AS dUserID, d.breed, d.weight, count(*) AS numrows FROM (SELECT DISTINCT u.user_guid FROM users u) AS DistinctUUsersID LEFT JOIN dogs d ON DistinctUUsersID.user_guid=d.user_guid GROUP BY DistinctUUsersID.user_guid HAVING numrows >10 ORDER BY numrows DESC
