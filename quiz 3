@@ -1,0 +1,15 @@
+It is important that you work through the Teradata exercises for before attempting this quiz!----------Right Join
+On what day was Dillard’s income based on total sum of purchases the greatest--------04/12/18
+What is the deptdesc of the departments that have the top 3 greatest numbers of skus from the skuinfo table associated with them?---------INVEST, POLOMEN, BRIOSO
+Which table contains the most distinct sku numbers?-----skuinfo
+How many skus are in the skstinfo table, but NOT in the skuinfo table?----------0
+What is the average amount of profit Dillard’s made per day?---------$1,527,903
+The store_msa table provides population statistics about the geographic location around a store. Using one query to retrieve your answer, how many MSAs are there within the state of North Carolina (abbreviated “NC”), and within these MSAs, what is the lowest population level (msa_pop) and highest income level (msa_income)?----------16 MSAs, lowest population of 339,511, highest income level of $36,151
+What department (with department description), brand, style, and color brought in the greatest total amount of sales?---------Department 800 described as Clinique, brand Clinique, style 6142, color DDML
+How many stores have more than 180,000 distinct skus associated with them in the skstinfo table?--------12
+Look at the data from all the distinct skus in the “cop” department with a “federal” brand and a “rinse wash” color. You'll see that these skus have the same values in some of the columns, meaning that they have some features in common.-----------style size
+How many skus are in the skuinfo table, but NOT in the skstinfo table?-------803,966
+n what city and state is the store that had the greatest total sum of sales?------Metairie, LA
+Given Table A (first table to be entered in the query) and Table B (second table to be entered in the query) the query result shown below is a result of what kind of join?--------LEFT join
+How many states have more than 10 Dillards stores in them?------15
+What is the suggested retail price of all the skus in the “reebok” department with the “skechers” brand and a “wht/saphire” color?--29.00
