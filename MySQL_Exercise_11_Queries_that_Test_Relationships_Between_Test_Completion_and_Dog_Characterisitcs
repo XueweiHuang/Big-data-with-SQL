@@ -1,0 +1,53 @@
+Question 2: Use the equijoin syntax (described in MySQL Exercise 8) to write a query that will output the Dognition personality dimension and total number of tests completed by each unique DogID. This query will be used as an inner subquery in the next question. LIMIT your output to 100 rows for troubleshooting purposes.
+
+%sql SELECT DISTINCT d.dog_guid, d.dimension, COUNT(c.test_name) AS testcomplete FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid GROUP BY d.dog_guid, d.dimension LIMIT 100 
+
+Question 3: Re-write the query in Question 2 using traditional join syntax (described in MySQL Exercise 8).
+%sql SELECT DISTINCT d.dog_guid, d.dimension, COUNT(c.test_name) AS testcomplete FROM dogs d JOIN complete_tests c ON d.dog_guid=c.dog_guid GROUP BY d.dog_guid, d.dimension LIMIT 100
+
+Question 4: To start, write a query that will output the average number of tests completed by unique dogs in each Dognition personality dimension. Choose either the query in Question 2 or 3 to serve as an inner query in your main query. If you have trouble, make sure you use the appropriate aliases in your GROUP BY and SELECT statements.
+%sql SELECT c.dimension, AVG(c.testcomplete) AS avgtest FROM (SELECT DISTINCT d.dog_guid, d.dimension, COUNT(c.test_name) AS testcomplete FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid GROUP BY d.dog_guid, d.dimension) AS c GROUP BY c.dimension
+
+Question 5: How many unique DogIDs are summarized in the Dognition dimensions labeled "None" or ""? (You should retrieve values of 13,705 and 71)
+%sql SELECT COUNT(dd.dog_guid), dd.dimension FROM (SELECT DISTINCT d.dog_guid, d.dimension, COUNT(c.test_name) AS testcomplete FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid GROUP BY d.dog_guid, d.dimension) AS dd WHERE dd.dimension IS NULL OR dd.dimension='' GROUP BY dd.dimension
+
+Question 6: To determine whether there are any features that are common to all dogs that have non-NULL empty strings in the dimension column, write a query that outputs the breed, weight, value in the "exclude" column, first or minimum time stamp in the complete_tests table, last or maximum time stamp in the complete_tests table, and total number of tests completed by each unique DogID that has a non-NULL empty string in the dimension column.
+%sql SELECT * FROM dogs LIMIT 1;
+
+Question 7: Rewrite the query in Question 4 to exclude DogIDs with (1) non-NULL empty strings in the dimension column, (2) NULL values in the dimension column, and (3) values of "1" in the exclude column. NOTES AND HINTS: You cannot use a clause that says d.exclude does not equal 1 to remove rows that have exclude flags, because Dognition clarified that both NULL values and 0 values in the "exclude" column are valid data. A clause that says you should only include values that are not equal to 1 would remove the rows that have NULL values in the exclude column, because NULL values are never included in equals statements (as we learned in the join lessons). In addition, although it should not matter for this query, practice including parentheses with your OR and AND statements that accurately reflect the logic you intend. Your results should return 402 DogIDs in the ace dimension and 626 dogs in the charmer dimension.
+%sql SELECT cc.dimension, AVG(cc.testcomplete) AS avgtest, COUNT(DISTINCT cc.dog_guid) AS ttyy FROM (SELECT DISTINCT d.dog_guid, d.dimension, COUNT(c.test_name) AS testcomplete FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid AND (d.dimension IS NOT NULL AND d.dimension!='') AND (d.exclude IS NULL OR d.exclude=0) GROUP BY d.dog_guid, d.dimension) AS cc GROUP BY cc.dimension
+
+Questions 8: Write a query that will output all of the distinct values in the breed_group field.
+%sql SELECT DISTINCT breed_group FROM dogs LIMIT 100
+
+Question 9: Write a query that outputs the breed, weight, value in the "exclude" column, first or minimum time stamp in the complete_tests table, last or maximum time stamp in the complete_tests table, and total number of tests completed by each unique DogID that has a NULL value in the breed_group column.
+%sql SELECT d.dog_guid, d.weight, d.breed_group, MAX(c.created_at) AS lasttest, MIN(c.created_at) AS firsttest, COUNT(c.created_at) AS testnum FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid AND breed_group IS NULL GROUP BY d.dog_guid, d.weight, d.breed 
+
+Question 10: Adapt the query in Question 7 to examine the relationship between breed_group and number of tests completed. Exclude DogIDs with values of "1" in the exclude column. Your results should return 1774 DogIDs in the Herding breed group.
+%sql SELECT cc.breed_group, AVG(cc.testcomplete) AS avgtest, COUNT(DISTINCT cc.dog_guid) AS ttyy FROM (SELECT DISTINCT d.dog_guid, d.breed_group, COUNT(c.test_name) AS testcomplete FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid AND d.exclude IS NULL OR d.exclude=0 GROUP BY d.dog_guid, d.dimension) AS cc GROUP BY cc.breed_group LIMIT 100;
+
+Question 11: Adapt the query in Question 10 to only report results for Sporting, Hound, Herding, and Working breed_groups using an IN clause.
+%sql SELECT cc.breed_group, AVG(cc.testcomplete) AS avgtest, COUNT(DISTINCT cc.dog_guid) AS ttyy FROM (SELECT DISTINCT d.dog_guid, d.breed_group, COUNT(c.test_name) AS testcomplete FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid AND (d.exclude IS NULL OR d.exclude=0) GROUP BY d.dog_guid, d.breed_group) AS cc GROUP BY cc.breed_group HAVING cc.breed_group IN ('Sporting', 'Hound', 'Herding', 'Working');
+
+Questions 12: Begin by writing a query that will output all of the distinct values in the breed_type field.
+%sql SELECT DISTINCT breed_type FROM dogs;
+
+Question 13: Adapt the query in Question 7 to examine the relationship between breed_type and number of tests completed. Exclude DogIDs with values of "1" in the exclude column. Your results should return 8865 DogIDs in the Pure Breed group.
+%sql SELECT cc.breed_type, AVG(cc.testcomplete) AS avgtest, COUNT(DISTINCT cc.dog_guid) AS ttyy FROM (SELECT DISTINCT d.dog_guid, d.breed_type, COUNT(c.test_name) AS testcomplete FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid AND (d.exclude IS NULL OR d.exclude=0) GROUP BY d.dog_guid, d.breed_type) AS cc GROUP BY cc.breed_type
+
+Question 14: For each unique DogID, output its dog_guid, breed_type, number of completed tests, and use a CASE statement to include an extra column with a string that reads "Pure_Breed" whenever breed_type equals 'Pure Breed" and "Not_Pure_Breed" whenever breed_type equals anything else. LIMIT your output to 50 rows for troubleshooting.
+
+%sql SELECT DISTINCT d.dog_guid, d.breed_type, COUNT(c.created_at) AS testnum, CASE d.breed_type WHEN 'Pure Breed' THEN 'Pure_Breed' ELSE 'Not_Pure_Breed' END AS breedtype FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid GROUP BY d.dog_guid, d.breed_type LIMIT 50
+
+Question 15: Adapt your queries from Questions 7 and 14 to examine the relationship between breed_type and number of tests completed by Pure_Breed dogs and non_Pure_Breed dogs. Your results should return 8336 DogIDs in the Not_Pure_Breed group.
+%sql SELECT f.breed_type, f.breedtype, AVG(f.testnum) AS avgscore FROM (SELECT DISTINCT d.dog_guid, d.breed_type, COUNT(c.created_at) AS testnum, CASE d.breed_type WHEN 'Pure Breed' THEN 'Pure_Breed' ELSE 'Not_Pure_Breed' END AS breedtype FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid AND d.exclude IS NULL OR d.exclude=0 GROUP BY d.dog_guid, d.breed_type) AS f GROUP BY f.breed_type, f.breedstype
+
+Question 16: Adapt your query from Question 15 to examine the relationship between breed_type, whether or not a dog was neutered (indicated in the dog_fixed field), and number of tests completed by Pure_Breed dogs and non_Pure_Breed dogs. There are DogIDs with null values in the dog_fixed column, so your results should have 6 rows, and the average number of tests completed by non-pure-breeds who are neutered is 10.5681.
+%sql select f.breed_type, f.dog_fixed AS neuture, f.breedtype, AVG(f.testnum) AS avgscore FROM (SELECT DISTINCT d.dog_guid, d.dog_fixed, d.breed_type, COUNT(c.created_at) AS testnum, CASE d.breed_type WHEN 'Pure Breed' THEN 'Pure_Breed' ELSE 'Not_Pure_Breed' END AS breedtype FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid AND d.exclude IS NULL OR d.exclude=0 GROUP BY d.dog_guid, d.breed_type, d.dog_fixed) AS f GROUP BY f.breed_type, f.dog_fixed, f.breedtype
+
+Question 17: Adapt your query from Question 7 to include a column with the standard deviation for the number of tests completed by each Dognition personality dimension
+%sql SELECT cc.dimension, STDDEV(cc.testcomplete) AS stdtest, AVG(cc.testcomplete) AS avgtest, COUNT(DISTINCT cc.dog_guid) AS ttyy FROM (SELECT DISTINCT d.dog_guid, d.dimension, COUNT(c.test_name) AS testcomplete FROM dogs d, complete_tests c WHERE d.dog_guid=c.dog_guid AND (d.dimension IS NOT NULL AND d.dimension!='') AND (d.exclude IS NULL OR d.exclude=0) GROUP BY d.dog_guid, d.dimension) AS cc GROUP BY cc.dimension
+
+Question 18: Write a query that calculates the average amount of time it took each dog breed_type to complete all of the tests in the exam_answers table. Exclude negative durations from the calculation, and include a column that calculates the standard deviation of durations for each breed_type group:
+%sql SELECT d.breed_type, STDDEV(TIMESTAMPDIFF(MINUTE, e.start_time, e.end_time)) AS stdv, AVG(TIMESTAMPDIFF(MINUTE, e.start_time, e.end_time)) AS avgtime FROM dogs d, exam_answers e WHERE d.dog_guid=e.dog_guid GROUP BY d.breed_type HAVING avgtime>0;
+
