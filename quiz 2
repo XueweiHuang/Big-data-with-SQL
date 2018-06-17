@@ -1,0 +1,16 @@
+Which of the following keywords are required in any query to retrieve data from a relational database? WHERE
+Which of the following database systems recognize the keyword “LIMIT” to limit the number of rows displayed from a query output?------mysql
+Which keywords could you use to determine the names of the columns contained in a table?-----DESCRIBE in MySQL and HELP in Teradata
+In how many columns of the STRINFO table of the Dillard’s database are NULL values *permitted*?---------3
+In how many columns of the STRINFO table of the Dillard’s database are NULL values *present*?--------3
+What was the highest original price in the Dillard’s database of the item with SKU 3631365?-------17.50
+What is the color of the Liz Claiborne brand item with the highest SKU # in the Dillard’s database (the Liz Claiborne brand is abbreviated “LIZ CLAI” in the Dillard’s database)?----------TEAK CBO
+What aspect of the following query will make the query crash?--------There is a comma after "amt" in the first line of the query
+What is the sku number of the item in the Dillard’s database that had the highest original sales price?----------6200173
+According to the strinfo table, in how many states within the United States are Dillard’s stores located? (HINT: the bottom of the SQL scratchpad reports the number of rows in your output)------31
+How many Dillard’s departments start with the letter “e”-----5
+What was the date of the earliest sale in the database where the sale price of the item did not equal the original price of the item, and what was the largest margin (original price minus sale price) of an item sold on that earliest date?----------04/08/01, $510.00
+What register number made the sale with the highest original price and highest sale price between the dates of August 1, 2004 and August 10, 2004? Make sure to sort by original price first and sale price second.-----621
+Which of the following brand names with the word/letters “liz” in them exist in the Dillard’s database? Select all that apply. Note that you will need more than a single correct selection to answer the question correctly.----------CIVILIZE           BELIZA
+What is the lowest store number of all the stores in the STORE_MSA table that are in the city of “little rock”,”memphis”, or “tulsa”?----504
+
