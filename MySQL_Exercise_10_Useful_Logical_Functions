@@ -1,0 +1,29 @@
+Question 3: Write a query using a CASE statement that outputs 3 columns: dog_guid, dog_fixed, and a third column that reads "neutered" every time there is a 1 in the "dog_fixed" column of dogs, "not neutered" every time there is a value of 0 in the "dog_fixed" column of dogs, and "NULL" every time there is a value of anything else in the "dog_fixed" column. Limit your results for troubleshooting purposes.
+%sql SELECT dog_guid, dog_fixed, CASE dog_fixed WHEN '1' THEN 'neutered' WHEN '0' THEN 'not neutered' END AS cut FROM dogs LIMIT 300;
+
+Question 4: We learned that NULL values should be treated the same as "0" values in the exclude columns of the dogs and users tables. Write a query using a CASE statement that outputs 3 columns: dog_guid, exclude, and a third column that reads "exclude" every time there is a 1 in the "exclude" column of dogs and "keep" every time there is any other value in the exclude column. Limit your results for troubleshooting purposes.
+%sql SELECT dog_guid, exclude, CASE exclude WHEN '1' THEN 'exclude' ELSE 'keep' END AS adc FROM dogs LIMIT 10
+
+Question 5: Re-write your query from Question 4 using an IF statement instead of a CASE statement.
+%sql SELECT dog_guid, exclude, IF(exclude='1','exclude', 'keep') AS adc FROM dogs LIMIT 10
+
+Question 6: Write a query that uses a CASE expression to output 3 columns: dog_guid, weight, and a third column that reads...
+%sql SELECT dog_guid, weight, CASE WHEN weight <=10 THEN 'very small' WHEN weight>10 AND weight<=30 THEN 'small' WHEN weight >30 AND weight<=50 THEN 'medium' WHEN weight>50 AND weight<=85 THEN 'large' WHEN weight>85 THEN 'very large' END AS sizess FROM dogs LIMIT 100
+
+Question 7: How many distinct dog_guids are found in group 1 using this query?
+%sql SELECT COUNT(DISTINCT dog_guid), CASE WHEN breed_group='Sporting' OR breed_group='Herding' AND exclude!='1' THEN "group 1"ELSE "everything else" END AS groups FROM dogs GROUP BY groups
+
+Question 8: How many distinct dog_guids are found in group 1 using this query?
+%sql SELECT COUNT(DISTINCT dog_guid), CASE WHEN exclude!='1' AND breed_group='Sporting' OR breed_group='Herding' THEN "group 1" ELSE "everything else" END AS group_name FROM dogs GROUP BY group_name
+
+Question 9: How many distinct dog_guids are found in group 1 using this query?
+%sql SELECT COUNT(DISTINCT dog_guid), CASE WHEN exclude!='1' AND (breed_group='Sporting' OR breed_group='Herding') THEN "group 1" ELSE "everything else" END AS group_name FROM dogs GROUP BY group_name
+
+Question 10: For each dog_guid, output its dog_guid, breed_type, number of completed tests, and use an IF statement to include an extra column that reads "Pure_Breed" whenever breed_type equals 'Pure Breed" and "Not_Pure_Breed" whenever breed_type equals anything else. LIMIT your output to 50 rows for troubleshooting. HINT: you will need to use a join to complete this query.
+%sql SELECT d.dog_guid,d.breed_type, testnum.test1, IF (breed_type='Pure Breed', 'Pure_Breed', 'Not_Pure_Breed') FROM dogs d, (SELECT dog_guid, COUNT(created_at) AS test1 FROM complete_tests GROUP BY dog_guid) AS testnum WHERE d.dog_guid=testnum.dog_guid GROUP BY d.dog_guid, d.breed_type LIMIT 50
+
+Question 11: Write a query that uses a CASE statement to report the number of unique user_guids associated with customers who live in the United States and who are in the following groups of states:
+%sql SELECT COUNT(DISTINCT user_guid) AS uninum, state, CASE WHEN state='NY' OR state='NJ' THEN 'GROUP 1' WHEN state='NC' OR state='SC' THEN 'GROUP 2' WHEN state='CA' THEN 'GROUP 3' ELSE 'GROUP 4' END AS whocares FROM users WHERE COUNTRY='US' AND state IS NOT NULL GROUP BY whocares
+
+Question 12: Write a query that allows you to determine how many unique dog_guids are associated with dogs who are DNA tested and have either stargazer or socialite personality dimensions. Your answer should be 70.%sql SELECT COUNT(DISTINCT dog_guid) AS dognums, dimension FROM dogs WHERE dna_tested=1 AND (dimension='stargazer' OR dimension ='socialite')  GROUP BY dimension
+%sql SELECT COUNT(DISTINCT dog_guid) AS dognums, dimension FROM dogs WHERE dna_tested=1 AND (dimension='stargazer' OR dimension ='socialite')  GROUP BY dimension
