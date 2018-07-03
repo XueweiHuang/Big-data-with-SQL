@@ -1,0 +1,150 @@
+quiz
+
+SELECT TOP 1 * FROM SKSTINFO; a
+SELECT TOP 1 * FROM TRNSACT b
+SELECT TOP 1 * FROM SKUINFO c
+
+SELECT c.VENDOR, COUNT(DISTINCT c.SKU) FROM (SELECT b.SKU FROM TRNSACT b LEFT JOIN SKSTINFO a ON a.sku=b.SKU WHERE a.SKU IS NULL) AS ff, SKUINFO c WHERE ff.SKU=c.SKU GROUP BY c.VENDOR ORDER BY COUNT(DISTINCT c.SKU) DESC
+
+
+SELECT  a.BRAND, a.SKU, STDDEV_SAMP(b.SPRICE) FROM SKUINFO a JOIN TRNSACT b ON a.SKU=b.SKU WHERE b.STYPE='P' GROUP BY a.BRAND, a.SKU HAVING COUNT(b.TRANNUM) >100 ORDER BY STDDEV_SAMP(b.SPRICE)DESC
+
+
+SELECT d.STORE, d.city, d.state, c.DEPTDESC, COUNT(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='11' THEN b.SALEDATE END) AS novd,  COUNT(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='12' THEN b.SALEDATE END) AS decd, SUM(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='11' THEN AMT END) AS novr, SUM(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='12' THEN AMT END) AS decr, novr/novd AS novp, decr/decd AS decp, (decr/decd-novr/novd)/(novr/novd) AS changemonth, CASE WHEN (EXTRACT (YEAR from b.SALEDATE)='2005' AND  EXTRACT(MONTH from b.SALEDATE)='8') THEN 'kill' ELSE 'stay' END AS cdc FROM SKUINFO a, TRNSACT b, DEPTINFO c, STRINFO d WHERE a.SKU=b.SKU AND b.STORE=d.STORE AND a.DEPT=c.DEPT AND b.STYPE='P' AND cdc='stay' GROUP BY d.STORE, d.city, d.state, c.DEPTDESC, cdc HAVING COUNT(DISTINCT b.saledate)>=20 ORDER BY changemonth DESC
+
+SELECT c.store, c.city, c.state, SUM(case when tmonth=11 then amt Else 0 end)/COUNT(DISTINCT Tday) AS month11, SUM(case when tmonth = 12 then amt Else 0 end)/COUNT(DISTINCT Tday) AS month12
+FROM (SELECT t.store, s.city, s.state, extract(MONTH FROM t.saledate) AS Tmonth, extract(DAY FROM t.saledate) AS Tday, amt
+	FROM trnsact t JOIN strinfo s 
+	ON t.store=s.store
+	WHERE Tmonth=11 OR Tmonth=12) AS c
+GROUP BY 1,2,3
+ORDER BY month12-month11 DESC;
+
+
+
+
+QUIZ
+
+
+
+SELECT a.CITY, a.STATE, (SUM(b.dailyave)/SUM(b.days)) AS income FROM (SELECT CITY, STATE, MSA_INCOME, STORE  FROM STORE_MSA) AS a JOIN (SELECT SUM(AMT) AS dailyave, COUNT(DISTINCT SALEDATE) AS days, EXTRACT(YEAR from SALEDATE) AS yr, EXTRACT(MONTH from SALEDATE)AS mo, STORE, CASE WHEN (yr='2005' AND mo='8') THEN 'kill' ELSE 'stay' END AS remove FROM TRNSACT WHERE STYPE='P' AND remove='stay' GROUP BY EXTRACT(YEAR from SALEDATE), EXTRACT(MONTH from SALEDATE), STORE  HAVING days>=20) AS b ON a.STORE=b.STORE WHERE a.MSA_INCOME  IN((SELECT MAX(MSA_INCOME) FROM STORE_MSA), (SELECT MIN(MSA_INCOME) FROM STORE_MSA)) GROUP BY a.CITY, a.STATE
+
+
+
+
+
+
+
+SELECT a.cate, (SUM(b.dailyave)/SUM(b.days)) AS income FROM (SELECT CASE 
+	WHEN msa_income<=20000 AND msa_income>1 THEN 'low'
+	WHEN msa_income<=30000 AND msa_income>20001 THEN 'med-low'
+	WHEN msa_income<=40000 AND msa_income>30001 THEN 'med-high'
+	WHEN msa_income<=60000 AND msa_income>40001 THEN 'high'
+	END AS cate, STORE  FROM STORE_MSA) AS a JOIN(SELECT SUM(AMT) AS dailyave, COUNT(DISTINCT SALEDATE) AS days, EXTRACT(YEAR from SALEDATE) AS yr, EXTRACT(MONTH from SALEDATE)AS mo, STORE, CASE WHEN (yr='2005' AND mo='8') THEN 'kill' ELSE 'stay' END AS remove FROM TRNSACT WHERE STYPE='P' AND remove='stay' GROUP BY EXTRACT(YEAR from SALEDATE), EXTRACT(MONTH from SALEDATE), STORE  HAVING days>=20) AS b ON a.STORE=b.STORE GROUP BY a.cate
+
+
+SELECT a.cate, (SUM(b.dailyave)/SUM(b.days)) AS income FROM (SELECT CASE 
+	WHEN msa_income<=20000 AND msa_income>1 THEN 'low'
+	WHEN msa_income<=30000 AND msa_income>20001 THEN 'med-low'
+	WHEN msa_income<=40000 AND msa_income>30001 THEN 'med-high'
+	WHEN msa_income<=60000 AND msa_income>40001 THEN 'high'
+	END AS cate, STORE  FROM STORE_MSA) AS a JOIN(SELECT SUM(AMT) AS dailyave, COUNT(DISTINCT SALEDATE) AS days, EXTRACT(YEAR from SALEDATE) AS yr, EXTRACT(MONTH from SALEDATE)AS mo, STORE, CASE WHEN (yr='2005' AND mo='8') THEN 'kill' ELSE 'stay' END AS remove FROM TRNSACT WHERE STYPE='P' AND remove='stay' GROUP BY EXTRACT(YEAR from SALEDATE), EXTRACT(MONTH from SALEDATE), STORE  HAVING days>=20) AS b ON a.STORE=b.STORE GROUP BY a.cate
+
+
+SELECT TOP 1 * FROM STORE_MSA
+
+
+SELECT a.cate, (SUM(b.dailyave)/SUM(b.days)) AS income FROM (SELECT CASE 
+	WHEN msa_pop<=100000 AND msa_pop>1 THEN 'very_small'
+	WHEN msa_pop<=200000 AND msa_pop>100001 THEN 'small'
+	WHEN msa_pop<=500000 AND msa_pop>200001 THEN 'med-small'
+	WHEN msa_pop<=1000000 AND msa_pop>500001 THEN 'med_large'
+        WHEN msa_pop<=5000000 AND msa_pop>1000001 THEN 'large' 
+        WHEN msa_pop>5000001 THEN 'very_large'
+	END AS cate, STORE  FROM STORE_MSA) AS a JOIN(SELECT SUM(AMT) AS dailyave, COUNT(DISTINCT SALEDATE) AS days, EXTRACT(YEAR from SALEDATE) AS yr, EXTRACT(MONTH from SALEDATE)AS mo, STORE, CASE WHEN (yr='2005' AND mo='8') THEN 'kill' ELSE 'stay' END AS remove FROM TRNSACT WHERE STYPE='P' AND remove='stay' GROUP BY EXTRACT(YEAR from SALEDATE), EXTRACT(MONTH from SALEDATE), STORE  HAVING days>=20) AS b ON a.STORE=b.STORE GROUP BY a.cate
+
+
+
+
+SELECT d.city, d.state, c.DEPTDESC, COUNT(DISTINCT CASE WHEN EXTRACT (MONTH from b.SALEDATE)='11' THEN b.SALEDATE END) AS novd,  COUNT(DISTINCT CASE WHEN EXTRACT (MONTH from b.SALEDATE)='12' THEN b.SALEDATE END) AS decd, SUM(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='11' THEN AMT END) AS novr, SUM(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='12' THEN AMT END) AS decr, novr/novd AS novp, decr/decd AS decp, ((decr/decd-novr/novd)/(novr/novd)) AS changemonth FROM SKUINFO a, TRNSACT b, DEPTINFO c, STRINFO d WHERE a.SKU=b.SKU AND b.STORE=d.STORE AND a.DEPT=c.DEPT AND b.STYPE='P' GROUP BY d.city, d.state, c.DEPTDESC HAVING COUNT(DISTINCT b.saledate)>=20 AND (novr>1000 AND decr>1000) ORDER BY changemonth DESC
+
+12.
+
+SELECT s.store, s.city, s.state, d.deptdesc, sum(case when extract(month from saledate)=11 then amt end) as November,
+COUNT(DISTINCT (case WHEN EXTRACT(MONTH from saledate) ='11' then saledate END)) as Nov_numdays, sum(case when extract(month from saledate)=12 then amt end) as December,
+COUNT(DISTINCT (case WHEN EXTRACT(MONTH from saledate) ='12' then saledate END)) as Dec_numdays, ((December/Dec_numdays)-(November/Nov_numdays))/(November/Nov_numdays)*100 AS bump
+FROM trnsact t JOIN strinfo s
+ON t.store=s.store JOIN skuinfo si
+ON t.sku=si.sku JOIN deptinfo d
+ON si.dept=d.dept
+WHERE t.stype='P' and t.store||EXTRACT(YEAR from t.saledate)||EXTRACT(MONTH from t.saledate) IN (SELECT store||EXTRACT(YEAR from saledate)||EXTRACT(MONTH from saledate)
+	FROM trnsact
+	GROUP BY store, EXTRACT(YEAR from saledate), EXTRACT(MONTH from saledate)
+	HAVING COUNT(DISTINCT saledate)>= 20)
+GROUP BY s.store, s.city, s.state, d.deptdesc HAVING November > 1000 AND December > 1000
+ORDER BY bump DESC;
+
+
+
+SELECT  * FROM TRNSACT WHERE SKU=607231
+SELECT d.STORE, d.city, d.state,  COUNT(DISTINCT CASE WHEN EXTRACT (MONTH from b.SALEDATE)='8' THEN b.SALEDATE END) AS augd,  COUNT(DISTINCT CASE WHEN EXTRACT (MONTH from b.SALEDATE)='9' THEN b.SALEDATE END) AS sepd, SUM(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='8' THEN AMT END) AS augr, SUM(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='9' THEN AMT END) AS sepr, augr/augd AS augp, sepr/sepd AS sepp, (sepr/sepd-augr/augd)/(sepr/sepd) AS changemonth, CASE WHEN (EXTRACT (YEAR from b.SALEDATE)='2005' AND  EXTRACT(MONTH from b.SALEDATE)='8') THEN 'kill' ELSE 'stay' END AS cdc FROM TRNSACT b,  STRINFO d WHERE b.STORE=d.STORE AND b.STYPE='P' AND cdc='stay' GROUP BY d.STORE, d.city, d.state,  cdc HAVING COUNT(DISTINCT b.saledate)>=20 ORDER BY changemonth ASC
+
+
+
+
+
+
+
+
+
+
+
+
+13.
+
+
+SELECT c.deptdesc, d.STORE, d.city, d.state,   SUM(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='8' THEN b.QUANTITY END) AS augr, SUM(CASE WHEN EXTRACT (MONTH from b.SALEDATE)='9' THEN b.QUANTITY END) AS sepr, augr-sepr AS dif, CASE WHEN (EXTRACT (YEAR from b.SALEDATE)='2005' AND  EXTRACT(MONTH from b.SALEDATE)='8') THEN 'kill' ELSE 'stay' END AS cdc FROM TRNSACT b JOIN STRINFO d ON b.STORE=d.STORE JOIN SKUINFO a ON a.SKU=b.SKU JOIN DEPTINFO c ON c.DEPT=a.DEPT  WHERE  b.STYPE='P' AND cdc='stay' GROUP BY c.deptdesc, d.STORE, d.city, d.state,  cdc HAVING COUNT(DISTINCT b.saledate)>=20 ORDER BY dif DESC
+
+
+SELECT s.city, s.state, d.deptdesc, t.store, CASE when extract(year from t.saledate) = 2005 AND extract(month from t.saledate) = 8 then 'exclude' END as exclude_flag,
+SUM(case WHEN EXTRACT(MONTH from saledate) ='8' then t.quantity END) as August,
+SUM(case WHEN EXTRACT(MONTH from saledate) ='9' then t.quantity END) as September, August-September AS dip
+FROM trnsact t JOIN strinfo s
+ON t.store=s.store JOIN skuinfo si
+ON t.sku=si.sku JOIN deptinfo d
+ON si.dept=d.dept WHERE t.stype='P' AND exclude_flag IS NULL 
+GROUP BY s.city, s.state, d.deptdesc, t.store, exclude_flag
+ORDER BY dip DESC;
+
+
+
+
+
+
+
+
+
+
+
+
+
+14.
+
+
+
+
+SELECT CASE when max_month_table.month_num = 1 then 'January' when max_month_table.month_num = 2 then 'February' when max_month_table.month_num = 3 then 'March' when max_month_table.month_num = 4 then 'April' when max_month_table.month_num = 5 then 'May' when max_month_table.month_num = 6 then 'June' when max_month_table.month_num = 7 then 'July' when max_month_table.month_num = 8 then 'August' when max_month_table.month_num = 9 then 'September' when max_month_table.month_num = 10 then 'October' when max_month_table.month_num = 11 then 'November' when max_month_table.month_num = 12 then 'December' END, COUNT(*)
+FROM (SELECT DISTINCT extract(year from saledate) as year_num, extract(month from saledate) as month_num, CASE when extract(year from saledate) = 2005 AND extract(month from saledate) = 8 then 'exclude' END as exclude_flag, store, SUM(amt) AS tot_sales, COUNT (DISTINCT saledate) as numdays, tot_sales/numdays as dailyrev, ROW_NUMBER () over (PARTITION BY store ORDER BY dailyrev DESC) AS month_rank
+	FROM trnsact
+	WHERE stype='P' AND exclude_flag IS NULL AND store||EXTRACT(YEAR from saledate)||EXTRACT(MONTH from saledate) IN (SELECT store||EXTRACT(YEAR from saledate)||EXTRACT(MONTH from saledate)
+		FROM trnsact
+		GROUP BY store, EXTRACT(YEAR from saledate), EXTRACT(MONTH from saledate)
+		HAVING COUNT(DISTINCT saledate)>= 20)
+	GROUP BY store, month_num, year_num
+	HAVING numdays>=20 QUALIFY month_rank=12) as max_month_table
+GROUP BY max_month_table.month_num
+ORDER BY max_month_table.month_num;
+
+15. 
+
+SELECT COUNT(a.STORE) AS amount, a.mo FROM (SELECT (SUM(QUANTITY)) AS dailyave,COUNT(DISTINCT SALEDATE)AS days, EXTRACT(YEAR from SALEDATE)AS yr, EXTRACT(MONTH from SALEDATE)AS mo, STORE, ROW_NUMBER() OVER(PARTITION BY STORE ORDER BY dailyave DESC) AS rank1, CASE WHEN (yr='2005' AND mo='8') THEN 'kill' ELSE 'stay' END AS remove FROM TRNSACT WHERE STYPE='R' AND remove='stay' GROUP BY EXTRACT(YEAR from SALEDATE), EXTRACT(MONTH from SALEDATE),STORE  HAVING days>=20 QUALIFY rank1=1) AS a GROUP BY a.mo;
